@@ -1,4 +1,4 @@
-package com.example.sboot2;
+package com.salesforce.lm.gateway.facebook.webhook;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +11,6 @@ import javax.ws.rs.container.Suspended;
 
 import org.glassfish.jersey.server.ManagedAsync;
 
-import java.util.Timer;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ExecutorService;
@@ -20,13 +19,12 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Path("/hello")
-public class ExampleEndpoint {
+public class Routing {
     @SuppressWarnings("unused")
-    private static final Logger LOG = LoggerFactory.getLogger(ExampleEndpoint.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Routing.class);
 
     private static final boolean DEBUG = false;
     private static final int WAIT_TIME = 100;
-    //private static final Timer TIMER = new Timer();
     private static final ScheduledExecutorService TIMER = Executors.newScheduledThreadPool(5);
     private static final ExecutorService BLOCKING_CODE_EXECUTOR = Executors.newFixedThreadPool(5000);
 
