@@ -19,6 +19,10 @@ Run that jar file
 
     ./entrypoint-dev.sh
 
+Run that jar file, overriding configuration properties
+
+    ./scripts/entrypoint-dev.sh --fb.webhook.foo=bar
+
 
 ## Using with Docker
 
