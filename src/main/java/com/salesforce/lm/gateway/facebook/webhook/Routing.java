@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.container.AsyncResponse;
@@ -28,6 +29,12 @@ public class Routing {
     private static final ScheduledExecutorService TIMER = Executors.newScheduledThreadPool(5);
     private static final ExecutorService BLOCKING_CODE_EXECUTOR = Executors.newFixedThreadPool(5000);
 
+    private final AppProperties appProperties;
+
+    @Autowired
+    public Routing(AppProperties appProperties) {
+        this.appProperties = appProperties;
+    }
 
     private static void debug(String message) {
         if (DEBUG)
@@ -37,7 +44,7 @@ public class Routing {
     @GET
     public String hello() {
         debug("hello endpoint");
-        return "Root Hello World from spring-boot-2!";
+        return "Root Hello World from spring-boot-2! (foo = " + appProperties.foo() + ")";
     }
 
     @GET
