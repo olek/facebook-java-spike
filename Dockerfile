@@ -42,7 +42,7 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 
 # ==================== Maven
 
-RUN apt-get --assume-yes install maven
+RUN apt-get --assume-yes update && apt-get --assume-yes install maven
 
 # ENV LEIN_ROOT true
 
