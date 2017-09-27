@@ -1,63 +1,32 @@
-FROM debian:jessie
+# ================================================================================
+# Build image.
 
-ENV LANG C.UTF-8
-
-# ==================== Java
-
-##########
-# Packages
-
-RUN apt-get --assume-yes update && apt-get --assume-yes install \
-  # Makes /etc/ssl/certs/java/cacerts available for the java8 install uses less stringent cacerts
-  default-jre-headless \
-  # to fetch jce_policy
-  curl \
-  # to unzip jce policy
-  unzip && \
-  rm -rf /var/lib/apt/lists/*
-
-########
-
-# Install Oracle Java 8. See https://github.com/William-Yeh/docker-java8
-# add webupd8 repository
-RUN \
-    echo "===> add webupd8 repository..."  && \
-    echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee /etc/apt/sources.list.d/webupd8team-java.list  && \
-    echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list  && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886  && \
-    apt-get update  && \
-    \
-    \
-    echo "===> install Java"  && \
-    echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections  && \
-    echo debconf shared/accepted-oracle-license-v1-1 seen true | debconf-set-selections  && \
-    DEBIAN_FRONTEND=noninteractive  apt-get --assume-yes install oracle-java8-installer oracle-java8-set-default  && \
-    \
-    \
-    echo "===> clean up..."  && \
-    rm -rf /var/cache/oracle-jdk8-installer  && \
-    rm -rf /var/lib/apt/lists/*
-
-ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
-
-# ==================== Maven
-
-RUN apt-get --assume-yes update && apt-get --assume-yes install maven
-
-# ENV LEIN_ROOT true
+FROM maven:ibmjava as builder
 
 WORKDIR /app
 
-COPY pom.xml /app/
+COPY pom.xml docker/maven-settings.xml /app/
+
+# overriding location for maven repository because current version of maven docker image declared /root/.m2 as VOLUME,
+# making it in effect ephemeral, not allowing us to cache dependencies and forcing maven to 'download the world' each
+# time we build.
 
 # resolve/download/cache all the dependencies, first by the book, then the non-elegant way that actually works
-RUN mvn dependency:go-offline --quiet
-RUN mvn package clean --fail-never --quiet 2>&1 > /dev/null
+RUN mvn dependency:go-offline --global-settings ./maven-settings.xml
+RUN mvn package clean --fail-never --global-settings ./maven-settings.xml
 
-COPY scripts/ /app/scripts
 COPY src/ /app/src
 
-RUN mvn package --quiet
-RUN mv target/*.jar .. && rm -fr src target pom.xml
+RUN mvn package --global-settings ./maven-settings.xml
 
-ENTRYPOINT ["./scripts/entrypoint.sh"]
+# ================================================================================
+# Runtime image.
+
+FROM ibmjava:8-jre-alpine
+
+WORKDIR /app
+
+COPY docker/entrypoint.sh /app/
+COPY --from=builder /app/target/*.jar .
+
+ENTRYPOINT ["./entrypoint.sh"]

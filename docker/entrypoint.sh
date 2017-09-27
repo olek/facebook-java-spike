@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 set -e
 
 project_name=fb-webhook
@@ -9,5 +9,5 @@ exec java \
   -XX:-OmitStackTraceInFastThrow \
   -Xmx1g \
   -server \
-  -jar /app/target/${project_name}-0.0.1-SNAPSHOT.jar \
+  -jar /app/${project_name}-0.0.1-SNAPSHOT.jar \
   "$@"
