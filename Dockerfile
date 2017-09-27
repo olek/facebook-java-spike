@@ -46,11 +46,18 @@ RUN apt-get --assume-yes update && apt-get --assume-yes install maven
 
 # ENV LEIN_ROOT true
 
-COPY . /app
-
 WORKDIR /app
 
-RUN mvn dependency:resolve
-RUN mvn package
+COPY pom.xml /app/
+
+# resolve/download/cache all the dependencies, first by the book, then the non-elegant way that actually works
+RUN mvn dependency:go-offline --quiet
+RUN mvn package clean --fail-never --quiet 2>&1 > /dev/null
+
+COPY scripts/ /app/scripts
+COPY src/ /app/src
+
+RUN mvn package --quiet
+RUN mv target/*.jar .. && rm -fr src target pom.xml
 
 ENTRYPOINT ["./scripts/entrypoint.sh"]
